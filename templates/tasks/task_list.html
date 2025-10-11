@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>📋 Список завдань</h1>
+
+  {% if tasks %}
+    <ul>
+      {% for task in tasks %}
+        <li>
+          <a href="{% url 'tasks:task_detail' task.id %}">{{ task.title }}</a>
+          {% if task.status == 'done' %}
+            ✅
+          {% elif task.status == 'in_progress' %}
+            ⏳
+          {% else %}
+            📝
+          {% endif %}
+          ({{ task.get_status_display }})
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Поки що немає жодного завдання.</p>
+  {% endif %}
+
+  <p><a href="{% url 'tasks:task_create' %}">➕ Створити нове завдання</a></p>
+{% endblock %}

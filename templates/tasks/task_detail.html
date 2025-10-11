@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>📝 Деталі завдання</h1>
+
+<h2>{{ task.title }}</h2>
+
+<p><strong>Опис:</strong> {{ task.description|default:"(немає опису)" }}</p>
+<p><strong>Створено:</strong> {{ task.created_at|date:"d.m.Y H:i" }}</p>
+<p><strong>Оновлено:</strong> {{ task.updated_at|date:"d.m.Y H:i" }}</p>
+<p><strong>Термін виконання:</strong> 
+    {% if task.due_date %}
+        {{ task.due_date|date:"d.m.Y" }}
+    {% else %}
+        (не встановлено)
+    {% endif %}
+</p>
+
+{% if task.status == 'done' %}
+    <p style="color: green;"><strong>Статус:</strong> виконано ✅</p>
+{% elif task.status == 'in_progress' %}
+    <p style="color: orange;"><strong>Статус:</strong> у процесі ⏳</p>
+{% else %}
+    <p style="color: gray;"><strong>Статус:</strong> до виконання 📝</p>
+{% endif %}
+
+<p><a href="{% url 'tasks:task_list' %}">← Назад до списку</a></p>
+{% endblock %}
