@@ -1,3 +1,11 @@
-created_at
-updated_at
-README
+editing notes
+search and filter
+dark / light mode
+user authentication
+
+- 📝 **Create, edit, and delete notes** in a simple and intuitive interface.  
+- ⏰ **Add deadlines** and mark tasks as completed.  
+- 🔍 **Search and filter** your notes easily.  
+- 🌙 **Dark / Light mode** support for comfortable use.  
+- 🧠 **User authentication** — register and manage your personal notes securely.  
+- ⚙️ Built with clean and modular Django architecture (apps, models, views, templates).
