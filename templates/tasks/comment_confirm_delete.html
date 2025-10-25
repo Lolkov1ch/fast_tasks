@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Видалити коментар?</h2>
+<p>{{ object.content }}</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">Так, видалити</button>
+  <a href="{% url 'tasks_app:task_detail' object.task.pk %}">Скасувати</a>
+</form>
+{% endblock %}

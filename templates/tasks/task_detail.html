@@ -1,28 +1,46 @@
-{% extends "base.html" %}
-
+{% extends 'base.html' %}
 {% block content %}
-<h1>📝 Деталі завдання</h1>
 
-<h2>{{ task.title }}</h2>
+<h2>{{ object.title }}</h2>
+<p><strong>Опис:</strong> {{ object.description }}</p>
+<p><strong>Статус:</strong> {{ object.get_status_display }}</p>
+<p><strong>Пріоритет:</strong> {{ object.get_priority_display }}</p>
+<p><strong>Дата виконання:</strong> {{ object.due_date|date:"d.m.Y" }}</p>
 
-<p><strong>Опис:</strong> {{ task.description|default:"(немає опису)" }}</p>
-<p><strong>Створено:</strong> {{ task.created_at|date:"d.m.Y H:i" }}</p>
-<p><strong>Оновлено:</strong> {{ task.updated_at|date:"d.m.Y H:i" }}</p>
-<p><strong>Термін виконання:</strong> 
-    {% if task.due_date %}
-        {{ task.due_date|date:"d.m.Y" }}
-    {% else %}
-        (не встановлено)
+<hr>
+
+<h3>💬 Коментарі</h3>
+
+{% for comment in comments %}
+  <div style="border:1px solid #ddd; border-radius:6px; padding:8px; margin-bottom:10px;">
+    <strong>{{ comment.author.username }}</strong>
+    <small style="color:gray;">({{ comment.created_at|date:"d.m.Y H:i" }})</small>
+    <p>{{ comment.content }}</p>
+  <form method="post" action="{% url 'tasks_app:comment_like' comment.pk %}">
+  {% csrf_token %}
+  <button type="submit">❤️ {{ comment.likes.count }}</button>
+</form>
+
+    {% if comment.author == user %}
+      <a href="{% url 'tasks_app:comment_edit' comment.pk %}">✏️ Редагувати</a> |
+      <a href="{% url 'tasks_app:comment_delete' comment.pk %}">🗑️ Видалити</a>
     {% endif %}
-</p>
+  </div>
+{% empty %}
+  <p>Поки що немає коментарів.</p>
+{% endfor %}
 
-{% if task.status == 'done' %}
-    <p style="color: green;"><strong>Статус:</strong> виконано ✅</p>
-{% elif task.status == 'in_progress' %}
-    <p style="color: orange;"><strong>Статус:</strong> у процесі ⏳</p>
+<hr>
+
+{% if user.is_authenticated %}
+<h4>Додати коментар</h4>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Додати</button>
+</form>
 {% else %}
-    <p style="color: gray;"><strong>Статус:</strong> до виконання 📝</p>
+<p><a href="{% url 'login' %}">Увійдіть</a>, щоб залишити коментар.</p>
 {% endif %}
 
-<p><a href="{% url 'tasks:task_list' %}">← Назад до списку</a></p>
 {% endblock %}

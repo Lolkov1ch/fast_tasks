@@ -1,10 +1,22 @@
 from django.urls import path
 from tasks_app import views
+from .views import TaskListView, TaskDetailView, TaskCreateView, TaskUpdateView, RegisterView, TaskDeleteView, CommentEditView, CommentDeleteView, ToggleLikeView
 
-app_name = "tasks"
+app_name = "tasks_app"
 
 urlpatterns = [
-    path("", views.TaskListView.as_view(), name="task_list"),
-    path("<int:pk>/", views.TaskDetailView.as_view(), name="task_detail"),
-    path("create/", views.TaskCreateView.as_view(), name="task_create"),
+    path("", TaskListView.as_view(), name="task_list"),
+    path("<int:pk>/", TaskDetailView.as_view(), name="task_detail"),
+    path("add/", TaskCreateView.as_view(), name="task_create"),
+
+
+    path("<int:pk>/edit/", TaskUpdateView.as_view(), name="task_update"),
+    path("<int:pk>/delete/", TaskDeleteView.as_view(), name="task_delete"),
+
+    path('register/', RegisterView.as_view(), name='register'),
+
+    path("comment/<int:pk>/edit/", CommentEditView.as_view(), name="comment_edit"),
+    path("comment/<int:pk>/delete/", CommentDeleteView.as_view(), name="comment_delete"),
+    path("comment/<int:pk>/like/", ToggleLikeView.as_view(), name="comment_like"),
+
 ]
