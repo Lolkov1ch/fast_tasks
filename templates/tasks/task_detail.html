@@ -1,47 +1,51 @@
 {% extends 'base.html' %}
 {% block content %}
-
 <h2>{{ object.title }}</h2>
 <p><strong>Description:</strong> {{ object.description }}</p>
 <p><strong>Status:</strong> {{ object.get_status_display }}</p>
 <p><strong>Priority:</strong> {{ object.get_priority_display }}</p>
 <p><strong>Due date:</strong> {{ object.due_date|date:"d.m.Y" }}</p>
-
 <hr>
-
-<h3>💬 Comments</h3>
-
+<h3>Images</h3>
+{% if object.images.exists %}
+    <div class="task-images">
+        {% for img in object.images.all %}
+            <div style="display: inline-block; margin: 5px;">
+                <img src="{{ img.image.url }}" alt="Task image" style="max-width:200px; border:1px solid #ccc; padding:2px;">
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No images for this task.</p>
+{% endif %}
+<hr>
+<h3>Comments</h3>
 {% for comment in comments %}
-  <div>
+  <div class="comment mb-2" style="border-bottom:1px solid #eee; padding-bottom:5px;">
     <strong>{{ comment.author.username }}</strong>
     <small>({{ comment.created_at|date:"d.m.Y H:i" }})</small>
     <p>{{ comment.content }}</p>
-
-    <form method="post" action="{% url 'tasks_app:comment_like' comment.pk %}">
+    <form method="post" action="{% url 'tasks_app:comment_like' comment.pk %}" style="display:inline;">
       {% csrf_token %}
       <button type="submit">❤️ {{ comment.likes.count }}</button>
     </form>
-
     {% if comment.author == user %}
-      <a href="{% url 'tasks_app:comment_edit' comment.pk %}">Edit</a> |
-      <a href="{% url 'tasks_app:comment_delete' comment.pk %}">Delete</a>
+      | <a href="{% url 'tasks_app:comment_edit' comment.pk %}">Edit</a>
+      | <a href="{% url 'tasks_app:comment_delete' comment.pk %}">Delete</a>
     {% endif %}
   </div>
 {% empty %}
   <p>No comments yet.</p>
 {% endfor %}
-
 <hr>
-
 {% if user.is_authenticated %}
   <h4>Add a comment</h4>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Add</button>
+    <button type="submit" class="btn btn-primary">Add</button>
   </form>
 {% else %}
   <p><a href="{% url 'login' %}">Log in</a> to leave a comment.</p>
 {% endif %}
-
 {% endblock %}

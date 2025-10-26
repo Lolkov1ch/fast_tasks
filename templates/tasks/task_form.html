@@ -1,12 +1,32 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Create a task</h1>
-
-  <form method="post">
+  <h1>{% if object %}Edit{% else %}Create{% endif %} a task</h1>
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Save</button>
+   
+    {% if object and object.images.exists %}
+      <div style="margin: 15px 0;">
+        <h3>Current Images:</h3>
+        <div class="task-images">
+          {% for img in object.images.all %}
+            <div style="display: inline-block; margin: 5px; text-align: center;">
+              <img src="{{ img.image.url }}" alt="Task image" style="max-width:150px; border:1px solid #ccc; padding:2px; display:block;">
+              <label style="font-size: 12px; margin-top: 5px;">
+                <input type="checkbox" name="delete_images" value="{{ img.id }}"> Delete
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+   
+    <div style="margin: 15px 0;">
+      <label for="id_images">{% if object %}Upload new images:{% else %}Upload images:{% endif %}</label>
+      <input type="file" name="images" id="id_images" multiple accept="image/*" style="display: block; margin-top: 5px;">
+    </div>
+   
+    <button type="submit">Save Task</button>
   </form>
-
   <p><a href="{% url 'tasks_app:task_list' %}">Return to list</a></p>
 {% endblock %}

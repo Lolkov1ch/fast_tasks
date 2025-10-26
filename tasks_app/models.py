@@ -3,6 +3,8 @@ from django.db.models import Q, F
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+from .utils import task_image_path
+
 class Task(models.Model):
     
     STATUS_CHOICES = [
@@ -20,14 +22,19 @@ class Task(models.Model):
     title = models.CharField(max_length=256)
     description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="todo")
+    #image = models.ImageField(upload_to=task_image_path, blank=True, null=True)
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default="medium")
     due_date = models.DateField(null=True, blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.title   
+class TaskImage(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to=task_image_path)
+
+    def __str__(self):
+        return f"Image for {self.task.title}"
 
 class Comment(models.Model):
     task = models.ForeignKey(

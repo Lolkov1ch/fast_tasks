@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from tasks_app import views
 from .views import TaskListView, TaskDetailView, TaskCreateView, TaskUpdateView, RegisterView, TaskDeleteView, CommentEditView, CommentDeleteView, ToggleLikeView
 
@@ -12,6 +14,8 @@ urlpatterns = [
 
     path("<int:pk>/edit/", TaskUpdateView.as_view(), name="task_update"),
     path("<int:pk>/delete/", TaskDeleteView.as_view(), name="task_delete"),
+    
+    # path('image/<int:pk>/delete/', views.TaskImageDeleteView.as_view(), name='image_delete'),
 
     path('register/', RegisterView.as_view(), name='register'),
 
@@ -20,3 +24,6 @@ urlpatterns = [
     path("comment/<int:pk>/like/", ToggleLikeView.as_view(), name="comment_like"),
 
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
