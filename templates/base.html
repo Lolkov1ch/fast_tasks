@@ -1,126 +1,42 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>📋 Task Tracker</title>
+  <title>Fast Tasks</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: "Inter", sans-serif;
-      margin: 0;
-      background-color: #f8f9fa;
-      color: #333;
-    }
-
-    header {
-      background-color: #007bff;
-      color: white;
-      padding: 15px 0;
-      text-align: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 26px;
-    }
-
-    nav {
-      background-color: #fff;
-      padding: 10px 20px;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    nav a {
-      text-decoration: none;
-      color: #007bff;
-      font-weight: 500;
-      margin-right: 15px;
-      transition: 0.2s;
-    }
-
-    nav a:hover {
-      color: #0056b3;
-      text-decoration: underline;
-    }
-
-    nav div {
-      font-weight: 600;
-      color: #333;
-    }
-
-    form.logout-form {
-      display: inline;
-    }
-
-    form.logout-form button {
-      background: none;
-      border: none;
-      color: #007bff;
-      cursor: pointer;
-      font-weight: 500;
-      transition: 0.2s;
-    }
-
-    form.logout-form button:hover {
-      color: #0056b3;
-      text-decoration: underline;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 30px auto;
-      background-color: white;
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    footer {
-      text-align: center;
-      padding: 15px;
-      color: #777;
-      font-size: 14px;
-      border-top: 1px solid #ddd;
-      background-color: #fff;
-      margin-top: 40px;
-    }
-  </style>
 </head>
 <body>
   <header>
-    <h1>📋 Task Tracker</h1>
+    <h1>Fast Tasks</h1>
   </header>
 
   <nav>
-    <div>
-      <a href="{% url 'tasks_app:task_list' %}">🏠 Головна</a>
+    <div class="nav-links">
+      <a href="{% url 'tasks_app:task_list' %}">Home</a>
       {% if user.is_authenticated %}
-        <form action="{% url 'logout' %}" method="post" class="logout-form">
+        <form action="{% url 'logout' %}" method="post" class="logout-form" style="display:inline;">
           {% csrf_token %}
-          <button type="submit">🚪 Вийти</button>
+          <button type="submit">Log out</button>
         </form>
       {% else %}
-        <a href="{% url 'login' %}">🔑 Увійти</a>
-        <a href="{% url 'tasks_app:register' %}">📝 Реєстрація</a>
+        <a href="{% url 'login' %}">Log in</a>
+        <a href="{% url 'tasks_app:register' %}">Register</a>
       {% endif %}
     </div>
 
     {% if user.is_authenticated %}
-      <div>👋 Вітаємо, <strong>{{ user.username }}</strong>!</div>
+      <div class="user-greeting">
+        Hello, <strong>{{ user.username }}</strong>!
+      </div>
     {% endif %}
   </nav>
 
-  <div class="container">
+  <main class="container">
     {% block content %}{% endblock %}
-  </div>
+  </main>
 
   <footer>
-    © {{ now|date:"Y" }} Task Tracker — створено для навчальних цілей 💻
+    © {{ now|date:"Y" }} Fast Tasks — created for educational purposes.
   </footer>
 </body>
 </html>

@@ -1,97 +1,94 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<h2 style="text-align:center;">Мої завдання</h2>
+<h2 style="text-align:center;">My Tasks</h2>
 
-<!-- 🔍 Форма фільтрації -->
-<form method="get" style="margin: 20px auto; max-width: 700px; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-    <div style="flex: 1;">
-      <label for="id_status">Статус:</label>
+<form method="get" class="task-filter-form">
+  <div class="form-row">
+    <div class="form-group">
+      <label for="id_status">Status:</label>
       {{ form.status }}
     </div>
-    <div style="flex: 1;">
-      <label for="id_priority">Пріоритет:</label>
+    <div class="form-group">
+      <label for="id_priority">Priority:</label>
       {{ form.priority }}
     </div>
-    <div style="flex: 1;">
-      <label for="id_due_date">Дата виконання:</label>
+    <div class="form-group">
+      <label for="id_due_date">Execution date:</label>
       {{ form.due_date }}
     </div>
   </div>
 
-  <div style="margin-top: 10px; text-align: right;">
-    <button type="submit" style="background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 5px;">Фільтрувати</button>
-    <a href="{% url 'tasks_app:task_list' %}" style="margin-left: 10px; text-decoration: none; color: #555;">Скинути</a>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{% url 'tasks_app:task_list' %}" class="btn btn-secondary">Discard</a>
   </div>
 </form>
 
-<!-- ➕ Кнопка додавання -->
-<div style="text-align: center; margin: 20px 0;">
-  <a href="{% url 'tasks_app:task_create' %}"
-     style="background-color: #28a745; color: white; padding: 10px 20px;
-            border-radius: 6px; text-decoration: none; font-weight: bold;">
-    + Додати завдання
-  </a>
+<div class="add-task-button text-center my-3">
+  <a href="{% url 'tasks_app:task_create' %}" class="btn btn-success">+ Add task</a>
+</div>
+
+<form method="get" class="my-3">
+    <input type="text" name="q" placeholder="Search tasks..." value="{{ request.GET.q }}">
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+<div class="my-3">
+  {% if tasks.has_previous %}
+    <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ tasks.previous_page_number }}" class="btn btn-secondary">Back</a>
+  {% endif %}
+  {% if tasks.has_next %}
+    <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ tasks.next_page_number }}" class="btn btn-secondary">Forward</a>
+  {% endif %}
 </div>
 
 <hr>
 
-<!-- 📋 Таблиця завдань -->
-<table style="width: 100%; border-collapse: collapse; font-family: sans-serif;">
+<table class="table table-bordered">
   <thead>
-    <tr style="background-color: #f4f4f4;">
-      <th style="border: 1px solid #ccc; padding: 8px;">Назва</th>
-      <th style="border: 1px solid #ccc; padding: 8px;">Статус</th>
-      <th style="border: 1px solid #ccc; padding: 8px;">Пріоритет</th>
-      <th style="border: 1px solid #ccc; padding: 8px;">Дата</th>
-      <th style="border: 1px solid #ccc; padding: 8px;">Дії</th>
+    <tr>
+      <th>Name</th>
+      <th>Status</th>
+      <th>Priority</th>
+      <th>Date</th>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
     {% for task in tasks %}
-      <tr>
-        <td style="border: 1px solid #ccc; padding: 8px;">{{ task.title }}</td>
-
-        <!-- 🎨 кольори для статусів -->
-        <td style="border: 1px solid #ccc; padding: 8px;
-          {% if task.status == 'todo' %}background-color:#f8d7da;{% endif %}
-          {% if task.status == 'in_progress' %}background-color:#fff3cd;{% endif %}
-          {% if task.status == 'done' %}background-color:#d4edda;{% endif %}
-        ">
-          {{ task.get_status_display }}
-        </td>
-
-        <td style="border: 1px solid #ccc; padding: 8px;">
-          {% if task.priority == 'high' %}
-            <span style="color: red; font-weight: bold;">{{ task.get_priority_display }}</span>
-          {% elif task.priority == 'medium' %}
-            <span style="color: orange;">{{ task.get_priority_display }}</span>
-          {% else %}
-            <span style="color: green;">{{ task.get_priority_display }}</span>
-          {% endif %}
-        </td>
-
-        <td style="border: 1px solid #ccc; padding: 8px;">
+      <tr class="task-row {{ task.status }}">
+        <td>{{ task.title }}</td>
+        <td>{{ task.get_status_display }}</td>
+        <td>{{ task.get_priority_display }}</td>
+        <td>
           {% if task.due_date %}
             {{ task.due_date|date:"d.m.Y" }}
           {% else %}
             —
           {% endif %}
         </td>
-
-        <td style="border: 1px solid #ccc; padding: 8px;">
-          <a href="{% url 'tasks_app:task_detail' task.pk %}">Деталі</a> |
-          <a href="{% url 'tasks_app:task_update' task.pk %}">Редагувати</a> |
-          <a href="{% url 'tasks_app:task_delete' task.pk %}">Видалити</a>
+        <td>
+          <a href="{% url 'tasks_app:task_detail' task.pk %}">Details</a> |
+          <a href="{% url 'tasks_app:task_update' task.pk %}">Edit</a> |
+          <a href="{% url 'tasks_app:task_delete' task.pk %}">Delete</a>
         </td>
       </tr>
     {% empty %}
       <tr>
-        <td colspan="5" style="text-align:center; padding: 20px;">Завдань немає 😌</td>
+        <td colspan="5" class="text-center">No tasks found</td>
       </tr>
     {% endfor %}
   </tbody>
 </table>
+
+<div class="my-3">
+  {% if tasks.has_previous %}
+    <a href="?q={{ request.GET.q }}&page={{ tasks.previous_page_number }}" class="btn btn-secondary">Back</a>
+  {% endif %}
+  {% if tasks.has_next %}
+    <a href="?q={{ request.GET.q }}&page={{ tasks.next_page_number }}" class="btn btn-secondary">Forward</a>
+  {% endif %}
+</div>
 
 {% endblock %}

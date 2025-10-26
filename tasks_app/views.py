@@ -19,14 +19,19 @@ from .forms import CommentForm, TaskFilterForm, TaskForm
 from .models import Comment, CommentLike, Task
 
 
+from django.views.generic import ListView
+from django.db.models import Q
+from .models import Task
+from .forms import TaskFilterForm
+
 class TaskListView(ListView):
     model = Task
     template_name = "tasks/task_list.html"
     context_object_name = "tasks"
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = Task.objects.all()
-
         if self.request.user.is_authenticated:
             queryset = queryset.filter(creator=self.request.user)
 
@@ -43,11 +48,23 @@ class TaskListView(ListView):
             if due_date:
                 queryset = queryset.filter(due_date=due_date)
 
+        query = self.request.GET.get('q', '')
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) | Q(description__icontains=query)
+            )
+
         return queryset
+    
+    def get(self, request, *args, **kwargs):
+        if 'q' in request.GET and not request.GET.get('q'):
+            return redirect('tasks_app:task_list')
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["form"] = TaskFilterForm(self.request.GET)
+        context["query"] = self.request.GET.get('q', '')
         return context
 
 
@@ -60,7 +77,6 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.creator = self.request.user
         return super().form_valid(form)
-
 
 class TaskUpdateView(LoginRequiredMixin, UserIsOwnerMixin, UpdateView):
     model = Task
@@ -86,7 +102,6 @@ class TaskDetailView(LoginRequiredMixin, DetailView):
         return context
 
     def post(self, request, *args, **kwargs):
-        """Створення нового коментаря."""
         self.object = self.get_object()
         form = CommentForm(request.POST)
         if form.is_valid():

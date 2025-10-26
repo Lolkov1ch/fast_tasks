@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>➕ Створення завдання</h1>
+  <h1>Create a task</h1>
 
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Зберегти</button>
+    <button type="submit">Save</button>
   </form>
 
-  <p><a href="{% url 'tasks_app:task_list' %}">← Назад до списку</a></p>
+  <p><a href="{% url 'tasks_app:task_list' %}">Return to list</a></p>
 {% endblock %}

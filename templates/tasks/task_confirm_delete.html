@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
   <div class="container mt-4">
-    <h2>🗑️ Видалення завдання</h2>
-    <p>Ви впевнені, що хочете видалити завдання <strong>"{{ object.title }}"</strong>?</p>
+    <h2>Delete Task</h2>
+    <p>Are you sure you want to delete the task <strong>"{{ object.title }}"</strong>?</p>
 
     <form method="post">
       {% csrf_token %}
-      <button type="submit" class="btn btn-danger">Так, видалити</button>
-      <a href="{% url 'tasks_app:task_list' %}" class="btn btn-secondary">Скасувати</a>
+      <button type="submit" class="btn btn-danger">Yes, delete</button>
+      <a href="{% url 'tasks_app:task_list' %}" class="btn btn-secondary">Cancel</a>
     </form>
   </div>
 {% endblock %}
