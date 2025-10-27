@@ -22,7 +22,6 @@ class Task(models.Model):
     title = models.CharField(max_length=256)
     description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="todo")
-    #image = models.ImageField(upload_to=task_image_path, blank=True, null=True)
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default="medium")
     due_date = models.DateField(null=True, blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')

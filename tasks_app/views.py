@@ -18,6 +18,7 @@ from tasks_app.mixins import UserIsOwnerMixin
 from .forms import CommentForm, TaskFilterForm, TaskForm
 from .models import Comment, CommentLike, Task, TaskImage
 
+
 from django.views.generic import ListView
 from django.db.models import Q
 from .models import Task
@@ -70,42 +71,17 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
     form_class = TaskForm
     template_name = "tasks/task_form.html"
     success_url = reverse_lazy("tasks_app:task_list")
-    
-    def post(self, request, *args, **kwargs):
-        print("=" * 50)
-        print("POST METHOD CALLED")
-        print(f"POST data: {request.POST}")
-        print(f"FILES: {request.FILES}")
-        print(f"FILES.getlist('images'): {request.FILES.getlist('images')}")
-        print("=" * 50)
+   
+    def form_valid(self, form):
+        task = form.save(commit=False)
+        task.creator = self.request.user
+        task.save()
         
-        form = self.get_form()
-       
-        if form.is_valid():
-            print("FORM IS VALID")
-            task = form.save(commit=False)
-            task.creator = request.user
-            task.save()
-            print(f"Task saved with ID: {task.id}")
-            
-            images = request.FILES.getlist('images')
-            print(f"Files received: {len(images)}")
-           
-            for f in images:
-                try:
-                    print(f"Processing: {f.name}, size: {f.size} bytes")
-                    TaskImage.objects.create(task=task, image=f)
-                    print(f"Successfully saved: {f.name}")
-                except Exception as e:
-                    print(f"Error saving {f.name}: {e}")
-                    import traceback
-                    traceback.print_exc()
-           
-            return redirect(self.success_url)
-        else:
-            print(f"FORM IS INVALID")
-            print(f"Form errors: {form.errors}")
-            return self.render_to_response(self.get_context_data(form=form))
+        images = self.request.FILES.getlist('images')
+        for f in images:
+            TaskImage.objects.create(task=task, image=f)
+        
+        return redirect(self.success_url)
 
 class TaskUpdateView(LoginRequiredMixin, UserIsOwnerMixin, UpdateView):
     model = Task
@@ -190,6 +166,7 @@ class RegisterView(CreateView):
         response = super().form_valid(form)
         login(self.request, self.object)
         return response
+
 
 class CommentEditView(LoginRequiredMixin, UpdateView):
     model = Comment
