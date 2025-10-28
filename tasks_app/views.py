@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -14,15 +15,9 @@ from django.views.generic import (
 )
 
 from tasks_app.mixins import UserIsOwnerMixin
-
 from .forms import CommentForm, TaskFilterForm, TaskForm
 from .models import Comment, CommentLike, Task, TaskImage
-
-
-from django.views.generic import ListView
 from django.db.models import Q
-from .models import Task
-from .forms import TaskFilterForm
 
 class TaskListView(ListView):
     model = Task
@@ -32,7 +27,6 @@ class TaskListView(ListView):
 
     def get_queryset(self):
         queryset = Task.objects.all()
-        
         form = TaskFilterForm(self.request.GET)
         if form.is_valid():
             status = form.cleaned_data.get("status")
@@ -53,18 +47,18 @@ class TaskListView(ListView):
             )
         
         queryset = queryset.order_by('-id')
+        
+        if not queryset.exists():
+            messages.info(self.request, "No tasks found")
+            return queryset
+        
         return queryset
-    
-    def get(self, request, *args, **kwargs):
-        if 'q' in request.GET and not request.GET.get('q'):
-            return redirect('tasks_app:task_list')
-        return super().get(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["form"] = TaskFilterForm(self.request.GET)
-        context["query"] = self.request.GET.get('q', '')
-        return context
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        if not queryset.exists():
+            return redirect('/') 
+        return super().get(request, *args, **kwargs)
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
@@ -81,6 +75,7 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
         for f in images:
             TaskImage.objects.create(task=task, image=f)
         
+        messages.success(self.request, "✅ Task created successfully!")
         return redirect(self.success_url)
 
 class TaskUpdateView(LoginRequiredMixin, UserIsOwnerMixin, UpdateView):
@@ -95,22 +90,30 @@ class TaskUpdateView(LoginRequiredMixin, UserIsOwnerMixin, UpdateView):
         
         if form.is_valid():
             task = form.save()
-
+            
             delete_image_ids = request.POST.getlist('delete_images')
             if delete_image_ids:
                 TaskImage.objects.filter(id__in=delete_image_ids, task=task).delete()
-                
+            
             images = request.FILES.getlist('images')
             for f in images:
                 TaskImage.objects.create(task=task, image=f)
             
+            messages.success(self.request, "✏️ Task updated successfully!")
             return redirect(self.success_url)
         else:
+            messages.error(self.request, "⚠️ Failed to update task. Please check the form.")
             return self.render_to_response(self.get_context_data(form=form))
+
 class TaskDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = Task
     template_name = "tasks/task_confirm_delete.html"
     success_url = reverse_lazy("tasks_app:task_list")
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        messages.success(request, "🗑️ Task deleted successfully!")
+        return super().delete(request, *args, **kwargs)
 
 class TaskDetailView(LoginRequiredMixin, DetailView):
     model = Task
@@ -130,32 +133,10 @@ class TaskDetailView(LoginRequiredMixin, DetailView):
             comment.author = request.user
             comment.task = self.object
             comment.save()
-        return redirect("tasks_app:task_detail", pk=self.object.pk)
-    
-class TaskUpdateView(LoginRequiredMixin, UserIsOwnerMixin, UpdateView):
-    model = Task
-    form_class = TaskForm
-    template_name = "tasks/task_form.html"
-    success_url = reverse_lazy("tasks_app:task_list")
-    
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-        
-        if form.is_valid():
-            task = form.save()
-
-            delete_image_ids = request.POST.getlist('delete_images')
-            if delete_image_ids:
-                TaskImage.objects.filter(id__in=delete_image_ids, task=task).delete()
-            
-            images = request.FILES.getlist('images')
-            for f in images:
-                TaskImage.objects.create(task=task, image=f)
-            
-            return redirect(self.success_url)
+            messages.success(request, "💬 Comment added!")
         else:
-            return self.render_to_response(self.get_context_data(form=form))
+            messages.error(request, "⚠️ Failed to add comment.")
+        return redirect("tasks_app:task_detail", pk=self.object.pk)
 
 class RegisterView(CreateView):
     template_name = "registration/register.html"
@@ -165,8 +146,8 @@ class RegisterView(CreateView):
     def form_valid(self, form):
         response = super().form_valid(form)
         login(self.request, self.object)
+        messages.success(self.request, "🎉 Registration successful! Welcome, {}.".format(self.object.username))
         return response
-
 
 class CommentEditView(LoginRequiredMixin, UpdateView):
     model = Comment
@@ -174,23 +155,26 @@ class CommentEditView(LoginRequiredMixin, UpdateView):
     template_name = "tasks/comment_form.html"
 
     def get_success_url(self):
+        messages.success(self.request, "✏️ Comment updated!")
         return reverse_lazy("tasks_app:task_detail", kwargs={"pk": self.object.task.pk})
 
     def dispatch(self, request, *args, **kwargs):
         if self.get_object().author != request.user:
+            messages.error(request, "⚠️ You can't edit someone else's comment.")
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
-
 
 class CommentDeleteView(LoginRequiredMixin, DeleteView):
     model = Comment
     template_name = "tasks/comment_confirm_delete.html"
 
     def get_success_url(self):
+        messages.success(self.request, "🗑️ Comment deleted!")
         return reverse_lazy("tasks_app:task_detail", kwargs={"pk": self.object.task.pk})
 
     def dispatch(self, request, *args, **kwargs):
         if self.get_object().author != request.user:
+            messages.error(request, "⚠️ You can't delete someone else's comment.")
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -200,5 +184,7 @@ class ToggleLikeView(LoginRequiredMixin, View):
         like, created = CommentLike.objects.get_or_create(comment=comment, user=request.user)
         if not created:
             like.delete()
+            messages.info(request, "💔 Like removed.")
+        else:
+            messages.success(request, "❤️ Comment liked!")
         return redirect("tasks_app:task_detail", pk=comment.task.pk)
-        
