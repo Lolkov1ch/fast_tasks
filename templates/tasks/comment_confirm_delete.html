@@ -1,10 +1,209 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Delete Comment?</h2>
-<p>{{ object.content }}</p>
-<form method="post">
-  {% csrf_token %}
-  <button type="submit">Yes, delete</button>
-  <a href="{% url 'tasks_app:task_detail' object.task.pk %}">Cancel</a>
-</form>
+<style>
+  .delete-comment-wrapper {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .delete-comment-card {
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  
+  .delete-comment-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #FF5722 0%, #ce9b01ff 100%);
+    z-index: 10;
+  }
+  
+  .delete-comment-header {
+    background: linear-gradient(135deg, #FF5722 0%, #ce9b01ff 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .delete-comment-header h2 {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  
+  .delete-comment-body {
+    padding: 2.5rem;
+    background: white;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  
+  [data-bs-theme="dark"] .delete-comment-body {
+    background: #2d2d2d;
+    color: #e9ecef;
+  }
+  
+  .warning-section {
+    background: linear-gradient(145deg, #fff3e0 0%, #ffe0b2 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #FF5722;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+  }
+  
+  [data-bs-theme="dark"] .warning-section {
+    background: linear-gradient(145deg, #3a2f1f 0%, #2d2416 100%);
+    border-left-color: #ce9b01ff;
+  }
+  
+  .warning-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,87,34,0.2);
+  }
+  
+  .warning-section p {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.125rem;
+    color: #495057;
+    line-height: 1.6;
+    font-weight: 600;
+  }
+  
+  [data-bs-theme="dark"] .warning-section p {
+    color: #e9ecef;
+  }
+  
+  .comment-preview {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 8px;
+    border: 2px solid #e1e8ed;
+    font-style: italic;
+    color: #6c757d;
+    line-height: 1.7;
+    margin: 0;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+  
+  [data-bs-theme="dark"] .comment-preview {
+    background: #343a40;
+    border-color: #495057;
+    color: #adb5bd;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+  }
+  
+  .btn-delete {
+    background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%);
+    border: none;
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(211,47,47,0.3);
+  }
+  
+  .btn-delete:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(211,47,47,0.6);
+    color: white;
+  }
+  
+  .btn-cancel {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    border: none;
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(108,117,125,0.3);
+  }
+  
+  .btn-cancel:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(108,117,125,0.6);
+    color: white;
+    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+  }
+  
+  @media (max-width: 576px) {
+    .button-group {
+      flex-direction: column;
+    }
+    
+    .btn-delete, .btn-cancel {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<div class="delete-comment-wrapper">
+  <div class="delete-comment-card">
+    <div class="delete-comment-header">
+      <h2>
+        <span></span>
+        Delete Comment?
+      </h2>
+    </div>
+    
+    <div class="delete-comment-body">
+      <div class="warning-section">
+        <p>Are you sure you want to delete this comment?</p>
+        <div class="comment-preview">{{ object.content }}</div>
+      </div>
+      
+      <form method="post">
+        {% csrf_token %}
+        <div class="button-group">
+          <button type="submit" class="btn-delete">
+            🗑️ Yes, Delete
+          </button>
+          <a href="{% url 'tasks_app:task_detail' object.task.pk %}" class="btn-cancel">
+            ← Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}

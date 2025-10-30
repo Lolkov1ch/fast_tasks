@@ -1,10 +1,269 @@
 {% extends 'base.html' %}
-
 {% block content %}
-<h2>Register</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-</form>
+<style>
+  .register-wrapper {
+    max-width: 500px;
+    margin: 60px auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .register-card {
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  
+  .register-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #FF5722 0%, #ce9b01ff 100%);
+    z-index: 10;
+  }
+  
+  .register-header {
+    background: linear-gradient(135deg, #FF5722 0%, #ce9b01ff 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .register-header h2 {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  
+  .register-body {
+    padding: 2.5rem;
+    background: white;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  
+  [data-bs-theme="dark"] .register-body {
+    background: #2d2d2d;
+    color: #e9ecef;
+  }
+  
+  .form-section {
+    position: relative;
+    border-radius: 24px;
+    padding: 3px;
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 50%, #ce9b01ff 100%);
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+  }
+  
+  [data-bs-theme="dark"] .form-section {
+    background: linear-gradient(135deg, #ce9b01ff 0%, #FF5722 50%, #FFC107 100%);
+  }
+  
+  .form-inner {
+    background: white;
+    border-radius: 22px;
+    padding: 2rem;
+  }
+  
+  [data-bs-theme="dark"] .form-inner {
+    background: #2d2d2d;
+  }
+  
+  .form-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255,87,34,0.2);
+  }
+  
+  .form-section label {
+    color: #FF5722;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    display: block;
+  }
+  
+  [data-bs-theme="dark"] .form-section label {
+    color: #ce9b01ff;
+  }
+  
+  .form-section input[type="text"],
+  .form-section input[type="password"],
+  .form-section input[type="email"],
+  .form-section textarea,
+  .form-section select {
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: white;
+    color: #333;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+  
+  [data-bs-theme="dark"] .form-section input[type="text"],
+  [data-bs-theme="dark"] .form-section input[type="password"],
+  [data-bs-theme="dark"] .form-section input[type="email"],
+  [data-bs-theme="dark"] .form-section textarea,
+  [data-bs-theme="dark"] .form-section select {
+    background: #343a40;
+    border-color: #495057;
+    color: #e9ecef;
+  }
+  
+  .form-section input:focus,
+  .form-section textarea:focus,
+  .form-section select:focus {
+    outline: none;
+    border-color: #FF5722;
+    box-shadow: 0 0 0 4px rgba(255,87,34,0.15), 0 4px 12px rgba(255,87,34,0.2);
+    transform: translateY(-2px);
+  }
+  
+  .form-section p {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-section p:last-of-type {
+    margin-bottom: 0;
+  }
+  
+  .helptext {
+    font-size: 0.8125rem;
+    color: #6c757d;
+    margin-top: 0.375rem;
+    display: block;
+    line-height: 1.4;
+  }
+  
+  [data-bs-theme="dark"] .helptext {
+    color: #adb5bd;
+  }
+  
+  .errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+  }
+  
+  .errorlist li {
+    color: #d32f2f;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    background: rgba(211,47,47,0.1);
+    border-radius: 6px;
+    margin-top: 0.5rem;
+  }
+  
+  [data-bs-theme="dark"] .errorlist li {
+    color: #ff6b6b;
+    background: rgba(255,107,107,0.15);
+  }
+  
+  .btn-register {
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 100%);
+    border: none;
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(255,87,34,0.3);
+  }
+  
+  .btn-register:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(255,87,34,0.6);
+    color: white;
+  }
+  
+  .login-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e1e8ed;
+    color: #6c757d;
+  }
+  
+  [data-bs-theme="dark"] .login-link {
+    border-top-color: #495057;
+    color: #adb5bd;
+  }
+  
+  .login-link a {
+    color: #FF5722;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+  
+  [data-bs-theme="dark"] .login-link a {
+    color: #ce9b01ff;
+  }
+  
+  .login-link a:hover {
+    color: white;
+    background: #FF5722;
+    text-decoration: none;
+  }
+  
+  [data-bs-theme="dark"] .login-link a:hover {
+    background: #ce9b01ff;
+    color: white;
+  }
+</style>
+
+<div class="register-wrapper">
+  <div class="register-card">
+    <div class="register-header">
+      <h2>
+        <span></span>
+        Register
+      </h2>
+    </div>
+    
+    <div class="register-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-section">
+          <div class="form-inner">
+            {{ form.as_p }}
+          </div>
+        </div>
+        
+        <button type="submit" class="btn-register">
+          Create Account
+        </button>
+        
+        <div class="login-link">
+          Already have an account? <a href="{% url 'login' %}">Log in here</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}

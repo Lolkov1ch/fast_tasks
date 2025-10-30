@@ -357,6 +357,25 @@
       box-shadow: 0 0 20px rgba(255,87,34,0.3); 
     }
   }
+  .btn-delete {
+  background: linear-gradient(135deg, #dc3545 0%, #e85c5c 100%);
+  border: none;
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 1.05rem;
+  text-decoration: none;
+  }
+  .btn-delete:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(220,53,69,0.6);
+  }
+
 </style>
 
 <div class="task-form-wrapper">
@@ -391,9 +410,11 @@
             <input type="file" name="images" id="id_images" multiple accept="image/*">
           </div>
         </div>
-
         <div class="form-actions">
           <button type="submit" class="btn-save">Save Task</button>
+          {% if object %}
+            <a href="{% url 'tasks_app:task_delete' object.id %}" class="btn-delete">Delete</a>
+          {% endif %}
           <a href="{% url 'tasks_app:task_list' %}" class="btn-back">Cancel</a>
         </div>
       </form>
