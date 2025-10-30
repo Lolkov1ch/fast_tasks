@@ -56,7 +56,7 @@ cd fast_tasks
 ### 2️⃣ Create and activate a virtual environment
 ```bash
 python -m venv venv
-source venv/bin/activate   # On Windows: venv\Scripts\activate
+source venv/bin/activate   # On Windows: venv\Scripts\Activate.ps1
 ```
 ### 3️⃣ Install dependencies
 ```bash
