@@ -1,51 +1,517 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>{{ object.title }}</h2>
-<p><strong>Description:</strong> {{ object.description }}</p>
-<p><strong>Status:</strong> {{ object.get_status_display }}</p>
-<p><strong>Priority:</strong> {{ object.get_priority_display }}</p>
-<p><strong>Due date:</strong> {{ object.due_date|date:"d.m.Y" }}</p>
-<hr>
-<h3>Images</h3>
-{% if object.images.exists %}
-    <div class="task-images">
-        {% for img in object.images.all %}
-            <div style="display: inline-block; margin: 5px;">
-                <img src="{{ img.image.url }}" alt="Task image" style="max-width:200px; border:1px solid #ccc; padding:2px;">
-            </div>
-        {% endfor %}
+<style>
+  .task-detail-wrapper {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .detail-card {
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+  }
+  .detail-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #FF5722 0%, #ce9b01ff 100%);
+    z-index: 10;
+  }
+  .detail-header {
+    background: linear-gradient(135deg, #FF5722 0%, #ce9b01ff 100%);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+  }
+  .detail-header h2 {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 600;
+  }
+  .detail-body {
+    padding: 2rem;
+    background: white;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  [data-bs-theme="dark"] .detail-body {
+    background: #2d2d2d;
+    color: #e9ecef;
+  }
+
+  .description-section, .info-grid, .task-images, .comments-section, .add-comment-section, .login-prompt {
+    margin-bottom: 2rem;
+  }
+  .description-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+  }
+  [data-bs-theme="dark"] .description-section { background: #1a1a1a; }
+  .description-section strong { color: #FF5722; display: block; margin-bottom: 0.75rem; font-size: 1.125rem; }
+  [data-bs-theme="dark"] .description-section strong { color: #ce9b01ff; }
+
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+  .info-item { background: #f8f9fa; padding: 1rem; border-radius: 8px; border-left: 4px solid #FF5722; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  [data-bs-theme="dark"] .info-item { background: #1a1a1a; border-left-color: #ce9b01ff; }
+  .info-item:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+  .info-label { font-size: 0.875rem; color: #6c757d; font-weight: 600; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  [data-bs-theme="dark"] .info-label { color: #adb5bd; }
+  .info-value { font-size: 1.125rem; font-weight: 600; color: #212529; }
+  [data-bs-theme="dark"] .info-value { color: #e9ecef; }
+
+  .section-title { 
+    font-size: 1.75rem; 
+    font-weight: 700; 
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem; 
+    display: flex; 
+    align-items: center; 
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: none; 
+    position: relative;
+  }
+
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #FF5722 0%, #FFC107 100%);
+    border-radius: 2px;
+  }
+
+  .task-images { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .image-item { background: white; border-radius: 8px; padding: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  [data-bs-theme="dark"] .image-item { background: #2d2d2d; }
+  .image-item:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+  .image-item img { width: 100%; height: 200px; object-fit: cover; border-radius: 6px; border: 2px solid #e1e8ed; }
+  [data-bs-theme="dark"] .image-item img { border-color: #495057; }
+  .no-images {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+    font-size: 1.125rem;
+    background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
+    margin-bottom: 2rem;
+  }
+  [data-bs-theme="dark"] .no-images {
+    background: linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%);
+    border-color: #495057;
+    color: #adb5bd;
+  }
+
+  .comments-section {
+    position: relative;
+    margin-bottom: 2rem;
+  }
+  .comment { 
+    background: white;
+    margin-bottom: 1.5rem; 
+    border-radius: 16px; 
+    padding: 3px;
+    position: relative;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 50%, #ce9b01ff 100%);
+  }
+  [data-bs-theme="dark"] .comment { 
+    background: linear-gradient(135deg, #ce9b01ff 0%, #FF5722 50%, #FFC107 100%);
+  }
+  .comment-inner {
+    background: white;
+    border-radius: 14px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  [data-bs-theme="dark"] .comment-inner {
+    background: #2d2d2d;
+  }
+  .comment-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,87,34,0.05) 0%, rgba(206,155,1,0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+  }
+  .comment:hover .comment-inner::before { opacity: 1; }
+  .comment:hover { 
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(255,87,34,0.2);
+  }
+  .comment-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e1e8ed;
+    position: relative;
+    z-index: 1;
+  }
+  [data-bs-theme="dark"] .comment-header { border-bottom-color: #495057; }
+  .comment-author { 
+    font-weight: 700; 
+    font-size: 1.125rem; 
+    color: #212529;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  [data-bs-theme="dark"] .comment-author { color: #e9ecef; }
+  .comment-date { 
+    font-size: 0.875rem; 
+    color: #6c757d;
+    background: #f1f3f5;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  [data-bs-theme="dark"] .comment-date { 
+    color: #adb5bd; 
+    background: #343a40;
+  }
+  .comment-content { 
+    color: #495057; 
+    line-height: 1.7; 
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+  [data-bs-theme="dark"] .comment-content { color: #ced4da; }
+  .comment-actions { 
+    display: flex; 
+    gap: 0.75rem; 
+    flex-wrap: wrap;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+  .like-btn { 
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 100%); 
+    border: none; 
+    color: white; 
+    padding: 0.5rem 1.25rem; 
+    border-radius: 25px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(255,87,34,0.3);
+  }
+  .like-btn:hover { 
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(255,87,34,0.5);
+  }
+  .comment-link { 
+    color: #FF5722; 
+    font-weight: 600; 
+    text-decoration: none; 
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    background: rgba(255,87,34,0.1);
+    font-size: 0.9rem;
+  }
+  [data-bs-theme="dark"] .comment-link { 
+    color: #ce9b01ff; 
+    background: rgba(206,155,1,0.1);
+  }
+  .comment-link:hover { 
+    color: white;
+    background: #FF5722;
+    text-decoration: none;
+    transform: translateY(-2px);
+  }
+  [data-bs-theme="dark"] .comment-link:hover { 
+    background: #ce9b01ff;
+    color: white;
+  }
+
+  .no-comments {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6c757d;
+    font-size: 1.125rem;
+    background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
+    margin-bottom: 2rem;
+    font-weight: 500;
+  }
+  [data-bs-theme="dark"] .no-comments {
+    background: linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%);
+    border-color: #495057;
+    color: #adb5bd;
+  }
+  .no-comments::before {
+    content: '💬';
+    display: block;
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+  }
+  .add-comment-section {
+    position: relative;
+    border-radius: 24px;
+    padding: 3px;
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 50%, #ce9b01ff 100%);
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+  }
+  [data-bs-theme="dark"] .add-comment-section {
+    background: linear-gradient(135deg, #ce9b01ff 0%, #FF5722 50%, #FFC107 100%);
+  }
+  .add-comment-inner {
+    background: white;
+    border-radius: 22px;
+    padding: 2.5rem;
+  }
+  [data-bs-theme="dark"] .add-comment-inner {
+    background: #2d2d2d;
+  }
+  .add-comment-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255,87,34,0.2);
+  }
+  .add-comment-section h4 { 
+    color: #FF5722; 
+    font-weight: 700; 
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  [data-bs-theme="dark"] .add-comment-section h4 { color: #ce9b01ff; }
+  .add-comment-section textarea { 
+    width: 100%; 
+    padding: 1rem 1.25rem; 
+    border: 2px solid #e1e8ed; 
+    border-radius: 16px; 
+    font-size: 1rem; 
+    background: white; 
+    color: #333; 
+    min-height: 140px; 
+    resize: vertical;
+    transition: all 0.3s ease;
+    font-family: inherit;
+  }
+  [data-bs-theme="dark"] .add-comment-section textarea { 
+    background: #343a40; 
+    border-color: #495057; 
+    color: #e9ecef; 
+  }
+  .add-comment-section textarea:focus { 
+    outline: none; 
+    border-color: #FF5722; 
+    box-shadow: 0 0 0 4px rgba(255,87,34,0.15), 0 4px 12px rgba(255,87,34,0.2);
+    transform: translateY(-2px);
+  }
+  .btn-submit { 
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 100%); 
+    border: none; 
+    color: white; 
+    padding: 1rem 2.5rem; 
+    border-radius: 8px; 
+    font-weight: 700; 
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 1rem;
+  }
+  .btn-submit:hover { 
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(255,87,34,0.6);
+  }
+
+  .login-prompt { 
+    background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%); 
+    text-align: center; 
+    padding: 2rem; 
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
+  }
+  [data-bs-theme="dark"] .login-prompt { 
+    background: linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%);
+    border-color: #495057;
+  }
+  .login-prompt p {
+    margin: 0;
+    font-size: 1.125rem;
+    color: #495057;
+  }
+  [data-bs-theme="dark"] .login-prompt p { color: #ced4da; }
+  .login-prompt a { 
+    color: #FF5722; 
+    text-decoration: none; 
+    font-weight: 700;
+    transition: all 0.3s ease;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+  [data-bs-theme="dark"] .login-prompt a { color: #ce9b01ff; }
+  .login-prompt a:hover { 
+    color: white;
+    background: #FF5722;
+    text-decoration: none;
+  }
+  [data-bs-theme="dark"] .login-prompt a:hover { 
+    background: #ce9b01ff;
+    color: white;
+  }
+  .image-overlay {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  .image-overlay img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+</style>
+
+<div class="task-detail-wrapper">
+  <div class="detail-card">
+    <div class="detail-header">
+      <h2>{{ object.title }}</h2>
     </div>
-{% else %}
-    <p>No images for this task.</p>
-{% endif %}
-<hr>
-<h3>Comments</h3>
-{% for comment in comments %}
-  <div class="comment mb-2" style="border-bottom:1px solid #eee; padding-bottom:5px;">
-    <strong>{{ comment.author.username }}</strong>
-    <small>({{ comment.created_at|date:"d.m.Y H:i" }})</small>
-    <p>{{ comment.content }}</p>
-    <form method="post" action="{% url 'tasks_app:comment_like' comment.pk %}" style="display:inline;">
-      {% csrf_token %}
-      <button type="submit">❤️ {{ comment.likes.count }}</button>
-    </form>
-    {% if comment.author == user %}
-      | <a href="{% url 'tasks_app:comment_edit' comment.pk %}">Edit</a>
-      | <a href="{% url 'tasks_app:comment_delete' comment.pk %}">Delete</a>
-    {% endif %}
+    <div class="detail-body">
+
+      <div class="description-section">
+        <strong>Description:</strong>
+        <p>{{ object.description }}</p>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Status</div>
+          <div class="info-value">{{ object.get_status_display }}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Priority</div>
+          <div class="info-value">{{ object.get_priority_display }}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Due Date</div>
+          <div class="info-value">{{ object.due_date|date:"d.m.Y" }}</div>
+        </div>
+      </div>
+
+      <h3 class="section-title">Images</h3>
+      <div class="image-overlay" id="imageOverlay">
+        <img src="" alt="Fullscreen image" id="overlayImg">
+      </div>
+      {% if object.images.exists %}
+        <div class="task-images">
+          {% for img in object.images.all %}
+            <div class="image-item">
+              <img src="{{ img.image.url }}" alt="Task image">
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="no-images">No images for this task.</div>
+      {% endif %}
+
+      <h3 class="section-title">Comments</h3>
+      <div class="comments-section">
+        {% if comments %}
+          {% for comment in comments %}
+            <div class="comment">
+              <div class="comment-inner">
+                <div class="comment-header">
+                  <span class="comment-author">{{ comment.author.username }}</span>
+                  <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+                </div>
+                <p class="comment-content">{{ comment.content }}</p>
+                <div class="comment-actions">
+                  <form method="post" action="{% url 'tasks_app:comment_like' comment.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="like-btn">❤️ {{ comment.likes.count }}</button>
+                  </form>
+                  {% if comment.author == user %}
+                    <a href="{% url 'tasks_app:comment_edit' comment.pk %}" class="comment-link">Edit</a>
+                    <a href="{% url 'tasks_app:comment_delete' comment.pk %}" class="comment-link">Delete</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="no-comments">No comments yet. Be the first to comment!</div>
+        {% endif %}
+      </div>
+
+      {% if user.is_authenticated %}
+        <div class="add-comment-section">
+          <div class="add-comment-inner">
+            <h4>Add a comment</h4>
+            <form method="post">
+              {% csrf_token %}
+              {{ form.as_p }}
+              <button type="submit" class="btn-submit">Post Comment</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="login-prompt">
+          <p><a href="{% url 'login' %}">Log in</a> to leave a comment.</p>
+        </div>
+      {% endif %}
+
+    </div>
   </div>
-{% empty %}
-  <p>No comments yet.</p>
-{% endfor %}
-<hr>
-{% if user.is_authenticated %}
-  <h4>Add a comment</h4>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Add</button>
-  </form>
-{% else %}
-  <p><a href="{% url 'login' %}">Log in</a> to leave a comment.</p>
-{% endif %}
+</div>
+<script>
+  const imageItems = document.querySelectorAll('.image-item img');
+  const overlay = document.getElementById('imageOverlay');
+  const overlayImg = document.getElementById('overlayImg');
+
+  imageItems.forEach(img => {
+    img.addEventListener('click', () => {
+      overlayImg.src = img.src;
+      overlay.style.display = 'flex';
+    });
+  });
+
+  overlay.addEventListener('click', () => {
+    overlay.style.display = 'none';
+  });
+</script>
 {% endblock %}
