@@ -19,6 +19,7 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     cursor: pointer;
     background-color: var(--bs-body-bg);
+    position: relative;
   }
   .card-hover:hover {
     transform: translateY(-6px) scale(1.02);
@@ -63,18 +64,38 @@
 
   .card-hover .btn {
     transition: all 0.3s ease;
+    position: relative;
+    z-index: 10;
   }
   .card-hover .btn:hover {
     transform: translateY(-2px) scale(1.05);
   }
 </style>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.card-hover');
+    
+    cards.forEach(card => {
+      card.addEventListener('click', function(e) {
+        if (e.target.closest('.btn')) {
+          return;
+        }
+        const detailsUrl = this.dataset.detailsUrl;
+        if (detailsUrl) {
+          window.location.href = detailsUrl;
+        }
+      });
+    });
+  });
+</script>
+
 <h2 class="text-center mb-4">Available Tasks</h2>
 
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
   {% for task in tasks %}
     <div class="col fade-in" style="animation-delay: {{ forloop.counter0|add:"0.05"|floatformat:2 }}s;">
-      <div class="card h-100 shadow-sm border-0 rounded-3 card-hover">
+      <div class="card h-100 shadow-sm border-0 rounded-3 card-hover" data-details-url="{% url 'tasks_app:task_detail' task.pk %}">
         <div class="card-body d-flex flex-column">
           <h5 class="card-title">{{ task.title }}</h5>
 
@@ -121,12 +142,26 @@
       </div>
     </div>
   {% empty %}
-  <div class="col-12 d-flex justify-content-center">
-    <div class="alert alert-info text-center rounded-3 py-3" style="font-size: 1.1rem; max-width: 400px;">
-      No tasks found
+<div class="d-flex justify-content-center align-items-center" style="min-height: 60vh; width: 100%;">
+  <div class="alert alert-info text-center rounded-3 py-5 px-4" 
+       style="font-size: 1.1rem; max-width: 500px; animation: fadeInUp 0.5s;">
+    <div style="font-size: 3rem; margin-bottom: 12px;">⚡</div>
+    <h4 class="mb-2">No tasks found</h4>
+    <p class="mb-3 text-muted">
+      You don't have any tasks yet. Start by creating a new task to keep track of work.
+    </p>
+    <a href="{% url 'tasks_app:task_create' %}" class="btn btn-primary rounded-pill px-4 py-2">
+      Create First Task
+    </a>
+    <div style="margin-top: 12px; font-size: 0.9rem; color: #666;">
+      Tip: Use the search or filters to find tasks quickly.
     </div>
   </div>
+</div>
 {% endfor %}
+
+
+
 
 </div>
 

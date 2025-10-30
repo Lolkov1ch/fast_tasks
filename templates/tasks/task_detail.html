@@ -404,6 +404,27 @@
     border-radius: 12px;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
   }
+  @media (max-width: 768px) {
+    .detail-body { padding: 1.25rem; }
+    .detail-header { padding: 1.5rem; }
+    .detail-header h2 { font-size: 1.5rem; }
+    .info-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .task-images { grid-template-columns: 1fr 1fr; }
+    .image-item img { height: 150px; }
+    .section-title { font-size: 1.4rem; }
+    .comment-inner { padding: 1rem; }
+    .add-comment-inner { padding: 1.5rem; }
+    .like-btn, .comment-link { flex: 1; justify-content: center; }
+    .comment-actions { flex-direction: column; }
+  }
+
+  @media (max-width: 480px) {
+    .task-images { grid-template-columns: 1fr; }
+    .image-item img { height: 180px; }
+    .section-title { font-size: 1.25rem; }
+    .detail-header h2 { font-size: 1.3rem; }
+    .btn-submit { font-size: 0.95rem; }
+  }
 </style>
 
 <div class="task-detail-wrapper">
@@ -456,9 +477,14 @@
             <div class="comment">
               <div class="comment-inner">
                 <div class="comment-header">
-                  <span class="comment-author">{{ comment.author.username }}</span>
-                  <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
-                </div>
+                  <span class="comment-author">
+                    <img src="https://ui-avatars.com/api/?name={{ comment.author.username }}&background=ce9b01ff&color=fff&size=32" 
+                    alt="{{ comment.author.username }}" 
+                    style="border-radius:50%; width:32px; height:32px; object-fit:cover; margin-right:0.5rem;">
+                  {{ comment.author.username }}
+                </span>
+                <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+              </div>
                 <p class="comment-content">{{ comment.content }}</p>
                 <div class="comment-actions">
                   <form method="post" action="{% url 'tasks_app:comment_like' comment.pk %}" style="display:inline;">

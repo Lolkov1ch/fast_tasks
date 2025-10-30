@@ -1,7 +1,7 @@
 # ⚡ Fast Tasks — Django App for Notes & Productivity
 ![Python](https://img.shields.io/badge/python-3.14-blue)
 ![Django](https://img.shields.io/badge/django-5.2.7-green)
-![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)  
+![Status](https://img.shields.io/badge/Status-Finished-green.svg)  
 
 > A fast, elegant, and minimalistic Django web app for managing your notes, to-dos, and daily tasks.  
 

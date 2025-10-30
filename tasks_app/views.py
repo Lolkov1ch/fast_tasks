@@ -47,18 +47,13 @@ class TaskListView(ListView):
             )
         
         queryset = queryset.order_by('-id')
-        
-        if not queryset.exists():
-            messages.info(self.request, "No tasks found")
-            return queryset
-        
         return queryset
 
-    def get(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        if not queryset.exists():
-            return redirect('/') 
-        return super().get(request, *args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if not self.get_queryset().exists():
+            messages.info(self.request, "No tasks found.")
+        return context
 
 class TaskCreateView(LoginRequiredMixin, CreateView):
     model = Task
@@ -75,7 +70,7 @@ class TaskCreateView(LoginRequiredMixin, CreateView):
         for f in images:
             TaskImage.objects.create(task=task, image=f)
         
-        messages.success(self.request, "✅ Task created successfully!")
+        messages.success(self.request, f"Task '{task.title}' created successfully!")
         return redirect(self.success_url)
 
 class TaskUpdateView(LoginRequiredMixin, UserIsOwnerMixin, UpdateView):
@@ -99,10 +94,11 @@ class TaskUpdateView(LoginRequiredMixin, UserIsOwnerMixin, UpdateView):
             for f in images:
                 TaskImage.objects.create(task=task, image=f)
             
-            messages.success(self.request, "✏️ Task updated successfully!")
+            task_title = task.title
+            messages.success(self.request, f"Task '{task_title}' updated successfully!")
             return redirect(self.success_url)
         else:
-            messages.error(self.request, "⚠️ Failed to update task. Please check the form.")
+            messages.error(self.request, "Failed to update task. Please check the form.")
             return self.render_to_response(self.get_context_data(form=form))
 
 class TaskDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
@@ -110,10 +106,15 @@ class TaskDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     template_name = "tasks/task_confirm_delete.html"
     success_url = reverse_lazy("tasks_app:task_list")
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self):
         self.object = self.get_object()
-        messages.success(request, "🗑️ Task deleted successfully!")
-        return super().delete(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        task_title = self.object.title  
+        self.object.delete()
+        messages.success(request, f"Task '{task_title}' deleted successfully!")
+        return redirect(self.success_url)
 
 class TaskDetailView(LoginRequiredMixin, DetailView):
     model = Task
@@ -133,9 +134,9 @@ class TaskDetailView(LoginRequiredMixin, DetailView):
             comment.author = request.user
             comment.task = self.object
             comment.save()
-            messages.success(request, "💬 Comment added!")
+            messages.success(request, "Comment added!")
         else:
-            messages.error(request, "⚠️ Failed to add comment.")
+            messages.error(request, "Failed to add comment.")
         return redirect("tasks_app:task_detail", pk=self.object.pk)
 
 class RegisterView(CreateView):
@@ -146,7 +147,7 @@ class RegisterView(CreateView):
     def form_valid(self, form):
         response = super().form_valid(form)
         login(self.request, self.object)
-        messages.success(self.request, "🎉 Registration successful! Welcome, {}.".format(self.object.username))
+        messages.success(self.request, "Registration successful! Welcome, {}.".format(self.object.username))
         return response
 
 class CommentEditView(LoginRequiredMixin, UpdateView):
@@ -155,12 +156,12 @@ class CommentEditView(LoginRequiredMixin, UpdateView):
     template_name = "tasks/comment_form.html"
 
     def get_success_url(self):
-        messages.success(self.request, "✏️ Comment updated!")
+        messages.success(self.request, "Comment updated!")
         return reverse_lazy("tasks_app:task_detail", kwargs={"pk": self.object.task.pk})
 
     def dispatch(self, request, *args, **kwargs):
         if self.get_object().author != request.user:
-            messages.error(request, "⚠️ You can't edit someone else's comment.")
+            messages.error(request, "You can't edit someone else's comment.")
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -169,12 +170,12 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
     template_name = "tasks/comment_confirm_delete.html"
 
     def get_success_url(self):
-        messages.success(self.request, "🗑️ Comment deleted!")
+        messages.success(self.request, "Comment deleted!")
         return reverse_lazy("tasks_app:task_detail", kwargs={"pk": self.object.task.pk})
 
     def dispatch(self, request, *args, **kwargs):
         if self.get_object().author != request.user:
-            messages.error(request, "⚠️ You can't delete someone else's comment.")
+            messages.error(request, "You can't delete someone else's comment.")
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
@@ -184,7 +185,7 @@ class ToggleLikeView(LoginRequiredMixin, View):
         like, created = CommentLike.objects.get_or_create(comment=comment, user=request.user)
         if not created:
             like.delete()
-            messages.info(request, "💔 Like removed.")
+            messages.info(request, "Like removed.")
         else:
-            messages.success(request, "❤️ Comment liked!")
+            messages.success(request, "Comment liked!")
         return redirect("tasks_app:task_detail", pk=comment.task.pk)
