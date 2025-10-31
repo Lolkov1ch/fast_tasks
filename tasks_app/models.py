@@ -4,9 +4,11 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-import os
+import os, shutil
+from django.conf import settings
 
 from .utils import task_image_path
+from .utils import avatar_upload_path
 
 class Task(models.Model):
     
@@ -41,18 +43,12 @@ class TaskImage(models.Model):
     
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
+    is_closed = models.BooleanField(default=False)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username}'s profile"
-
-    @staticmethod
-    def avatar_upload_path(instance, filename):
-        ext = os.path.splitext(filename)[1]
-        filename = f"avatar{ext}"
-        return f'avatars/{instance.user.username}/{filename}'
 
     avatar = models.ImageField(upload_to=avatar_upload_path, blank=True, null=True)
 

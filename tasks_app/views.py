@@ -208,23 +208,32 @@ class UserSettingsView(LoginRequiredMixin, View):
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=request.user.profile)
         return render(request, 'other/settings.html', {'u_form': u_form, 'p_form': p_form})
-
+    
     def post(self, request):
+        if 'update_privacy' in request.POST:
+            profile = request.user.profile
+            profile.is_closed = request.POST.get('profile_closed') == 'on'
+            profile.save()
+            messages.success(request, "Privacy settings updated successfully!")
+            return redirect('tasks_app:settings')
+        
         u_form = UserUpdateForm(request.POST, instance=request.user)
         p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
-
         if u_form.is_valid() and p_form.is_valid():
             u_form.save()
             p_form.save()
             messages.success(request, "Your account has been updated successfully!")
             return redirect('tasks_app:settings')
-
         return render(request, 'other/settings.html', {'u_form': u_form, 'p_form': p_form})
-
 
 class UserProfileView(LoginRequiredMixin, View):
     def get(self, request, username):
         user_obj = get_object_or_404(User, username=username)
+        
+        if user_obj != request.user and user_obj.profile.is_closed:
+            messages.warning(request, "This profile is private.")
+            return render(request, 'other/profile_closed.html', {'user_obj': user_obj})
+        
         return render(request, 'other/profile.html', {'user_obj': user_obj})
     
     def post(self, request, username):

@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% block title %}Profile Private{% endblock %}
+{% block content %}
+<style>
+  .private-profile-wrapper {
+    max-width: 700px;
+    margin: 80px auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .private-card {
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+    padding: 3px;
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 50%, #ce9b01ff 100%);
+    transition: all 0.3s ease;
+  }
+  
+  [data-bs-theme="dark"] .private-card {
+    background: linear-gradient(135deg, #ce9b01ff 0%, #FF5722 50%, #FFC107 100%);
+  }
+  
+  .private-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 45px rgba(255,87,34,0.25), 0 6px 12px rgba(0,0,0,0.15);
+  }
+  
+  .private-card-inner {
+    background: white;
+    border-radius: 22px;
+    padding: 4rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  [data-bs-theme="dark"] .private-card-inner {
+    background: #2d2d2d;
+    color: #e9ecef;
+  }
+  
+  .private-card-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255,87,34,0.05) 0%, rgba(206,155,1,0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+  }
+  
+  .private-card:hover .private-card-inner::before {
+    opacity: 1;
+  }
+  
+  .lock-icon {
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    animation: lockPulse 2s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+  }
+  
+  @keyframes lockPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  
+  .private-title {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .private-username {
+    display: inline-block;
+    background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #FF5722;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin: 1rem 0;
+    border: 2px solid rgba(255,87,34,0.2);
+    position: relative;
+    z-index: 1;
+  }
+  
+  [data-bs-theme="dark"] .private-username {
+    background: linear-gradient(145deg, #343a40 0%, #1a1a1a 100%);
+    color: #ce9b01ff;
+    border-color: rgba(206,155,1,0.3);
+  }
+  
+  .private-message {
+    color: #6c757d;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    margin: 1.5rem 0 2rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  [data-bs-theme="dark"] .private-message {
+    color: #adb5bd;
+  }
+  
+  .btn-return {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 100%);
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 25px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(255,87,34,0.3);
+    position: relative;
+    z-index: 1;
+  }
+  
+  .btn-return:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(255,87,34,0.5);
+    color: white;
+    text-decoration: none;
+  }
+  
+  .decorative-line {
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, #FF5722 0%, #FFC107 100%);
+    margin: 2rem auto;
+    border-radius: 2px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  @media (max-width: 768px) {
+    .private-profile-wrapper {
+      margin: 60px auto;
+    }
+    
+    .private-card-inner {
+      padding: 3rem 2rem;
+    }
+    
+    .lock-icon {
+      font-size: 4rem;
+    }
+    
+    .private-title {
+      font-size: 1.6rem;
+    }
+    
+    .private-message {
+      font-size: 1rem;
+    }
+    
+    .btn-return {
+      padding: 0.875rem 2rem;
+      font-size: 0.95rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .private-card-inner {
+      padding: 2.5rem 1.5rem;
+    }
+    
+    .lock-icon {
+      font-size: 3.5rem;
+    }
+    
+    .private-title {
+      font-size: 1.4rem;
+    }
+    
+    .private-username {
+      font-size: 1rem;
+      padding: 0.4rem 1.25rem;
+    }
+  }
+</style>
+
+<div class="private-profile-wrapper">
+  <div class="private-card">
+    <div class="private-card-inner">
+      <div class="lock-icon">🔒</div>
+      <h2 class="private-title">This Profile is Private</h2>
+      <div class="decorative-line"></div>
+      <div class="private-username">@{{ user_obj.username }}</div>
+      <p class="private-message">
+        This user has chosen to keep their profile private and only visible to themselves.
+      </p>
+      <a href="{% url 'tasks_app:task_list' %}" class="btn-return">Return to Home</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

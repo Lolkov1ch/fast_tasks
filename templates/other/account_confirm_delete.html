@@ -1,16 +1,331 @@
 {% extends 'base.html' %}
 {% block title %}Confirm Delete Account{% endblock %}
-
 {% block content %}
-<div style="max-width:500px; margin:60px auto; text-align:center; padding:40px; background:#fff; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.1);">
-    <h1 style="color:red;">Delete Account</h1>
-    <p>Are you sure you want to delete your account? This action <strong>cannot</strong> be undone.</p>
+<style>
+  .delete-account-wrapper {
+    max-width: 600px;
+    margin: 80px auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .delete-card {
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+    padding: 3px;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 50%, #bd2130 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .delete-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 45px rgba(220,53,69,0.3), 0 6px 12px rgba(0,0,0,0.15);
+  }
+  
+  .delete-card-inner {
+    background: white;
+    border-radius: 22px;
+    padding: 3.5rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  [data-bs-theme="dark"] .delete-card-inner {
+    background: #2d2d2d;
+    color: #e9ecef;
+  }
+  
+  .delete-card-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(220,53,69,0.05) 0%, rgba(189,33,48,0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+  }
+  
+  .delete-card:hover .delete-card-inner::before {
+    opacity: 1;
+  }
+  
+  .warning-icon {
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    animation: warningPulse 2s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+  }
+  
+  @keyframes warningPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+  
+  .delete-title {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .delete-message {
+    color: #495057;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  [data-bs-theme="dark"] .delete-message {
+    color: #ced4da;
+  }
+  
+  .delete-warning {
+    display: inline-block;
+    background: linear-gradient(145deg, #fff5f5 0%, #ffe0e0 100%);
+    color: #dc3545;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    margin: 1.5rem 0;
+    border: 2px solid rgba(220,53,69,0.3);
+    position: relative;
+    z-index: 1;
+  }
+  
+  [data-bs-theme="dark"] .delete-warning {
+    background: linear-gradient(145deg, #3d1f1f 0%, #4a2424 100%);
+    color: #ff6b6b;
+    border-color: rgba(220,53,69,0.5);
+  }
+  
+  .decorative-line {
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+    margin: 2rem auto;
+    border-radius: 2px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .btn-delete {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 25px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(220,53,69,0.3);
+  }
+  
+  .btn-delete:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(220,53,69,0.5);
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  }
+  
+  .btn-cancel {
+    background: white;
+    color: #495057;
+    border: 2px solid #dee2e6;
+    padding: 1rem 2.5rem;
+    border-radius: 25px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+  }
+  
+  [data-bs-theme="dark"] .btn-cancel {
+    background: #343a40;
+    color: #e9ecef;
+    border-color: #495057;
+  }
+  
+  .btn-cancel:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: #f8f9fa;
+    border-color: #adb5bd;
+    color: #212529;
+    text-decoration: none;
+  }
+  
+  [data-bs-theme="dark"] .btn-cancel:hover {
+    background: #495057;
+    border-color: #6c757d;
+    color: #fff;
+  }
+  
+  .warning-list {
+    text-align: left;
+    max-width: 400px;
+    margin: 1.5rem auto;
+    background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #dc3545;
+    position: relative;
+    z-index: 1;
+  }
+  
+  [data-bs-theme="dark"] .warning-list {
+    background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-left-color: #ff6b6b;
+  }
+  
+  .warning-list h4 {
+    color: #dc3545;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  [data-bs-theme="dark"] .warning-list h4 {
+    color: #ff6b6b;
+  }
+  
+  .warning-list ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    color: #495057;
+  }
+  
+  [data-bs-theme="dark"] .warning-list ul {
+    color: #ced4da;
+  }
+  
+  .warning-list li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+  }
+  
+  @media (max-width: 768px) {
+    .delete-account-wrapper {
+      margin: 60px auto;
+    }
+    
+    .delete-card-inner {
+      padding: 2.5rem 2rem;
+    }
+    
+    .warning-icon {
+      font-size: 4rem;
+    }
+    
+    .delete-title {
+      font-size: 1.6rem;
+    }
+    
+    .delete-message {
+      font-size: 1rem;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+    }
+    
+    .btn-delete,
+    .btn-cancel {
+      width: 100%;
+      padding: 0.875rem 2rem;
+      font-size: 0.95rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .delete-card-inner {
+      padding: 2rem 1.5rem;
+    }
+    
+    .warning-icon {
+      font-size: 3.5rem;
+    }
+    
+    .delete-title {
+      font-size: 1.4rem;
+    }
+    
+    .delete-warning {
+      font-size: 0.9rem;
+      padding: 0.75rem 1.25rem;
+    }
+    
+    .warning-list {
+      padding: 1.25rem;
+    }
+  }
+</style>
 
-    <form method="post" style="display:inline-block; margin-right:10px;">
-        {% csrf_token %}
-        <button type="submit" style="background:red; color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Confirm Delete</button>
-    </form>
-
-    <a href="{% url 'tasks_app:settings' %}" style="padding:10px 20px; border-radius:8px; border:1px solid #ccc; text-decoration:none; color:#333;">Cancel</a>
+<div class="delete-account-wrapper">
+  <div class="delete-card">
+    <div class="delete-card-inner">
+      <div class="warning-icon">⚠️</div>
+      <h1 class="delete-title">Delete Account</h1>
+      <div class="decorative-line"></div>
+      
+      <p class="delete-message">
+        Are you sure you want to delete your account?
+      </p>
+      
+      <div class="delete-warning">
+        This action CANNOT be undone!
+      </div>
+      
+      <div class="warning-list">
+        <h4>You will lose:</h4>
+        <ul>
+          <li>All your tasks and data</li>
+          <li>Your profile and settings</li>
+          <li>All comments and interactions</li>
+          <li>Access to this account forever</li>
+        </ul>
+      </div>
+      
+      <div class="action-buttons">
+        <form method="post" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn-delete">Confirm Delete</button>
+        </form>
+        <a href="{% url 'tasks_app:settings' %}" class="btn-cancel">Cancel</a>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

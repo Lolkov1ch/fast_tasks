@@ -85,7 +85,7 @@
 
     .avatar:hover {
     transform: scale(1.03); 
-    box-shadow: 0 0 20px rgba(255, 87, 34, 0.6), 0 8px 24px rgba(0,0,0,0.25); /* мягкое свечение */
+    box-shadow: 0 0 20px rgba(255, 87, 34, 0.6), 0 8px 24px rgba(0,0,0,0.25); 
     }
   
   [data-bs-theme="dark"] .avatar {
@@ -362,8 +362,8 @@
   <div class="profile-card">
     <div class="profile-header">
       <div class="avatar-container">
-        <img src="{% if user_obj.profile.avatar %}{{ user_obj.profile.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ user_obj.username }}&background=ce9b01ff&color=fff&size=150{% endif %}" 
-             alt="Avatar" class="avatar">
+        <img src="{% if user_obj.profile.avatar %}{{ user_obj.profile.avatar.url }}{% else %}https://ui-avatars.com/api/?name={% if user_obj.first_name %}{{ user_obj.first_name }}{% else %}{{ user_obj.username }}{% endif %}&background=ce9b01ff&color=fff&size=150{% endif %}" 
+          alt="Avatar" class="avatar">
       </div>
       <h1>{{ user_obj.first_name }} {{ user_obj.last_name }}</h1>
       <h2>{{ user_obj.username }}</h2>

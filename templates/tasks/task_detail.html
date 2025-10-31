@@ -169,15 +169,64 @@
     z-index: 1;
   }
   [data-bs-theme="dark"] .comment-header { border-bottom-color: #495057; }
-  .comment-author { 
-    font-weight: 700; 
-    font-size: 1.125rem; 
-    color: #212529;
+  
+  .comment-author-link {
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.2s;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
-  [data-bs-theme="dark"] .comment-author { color: #e9ecef; }
+  
+  .comment-author-link:hover {
+    opacity: 0.85;
+  }
+  
+  .comment-author-link:hover .comment-avatar {
+    box-shadow: 0 0 0 3px rgba(206, 155, 1, 0.3);
+    transition: box-shadow 0.2s;
+  }
+  
+  .comment-avatar {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    transition: box-shadow 0.2s;
+  }
+  
+  .comment-author-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  
+  .comment-author-name {
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: #212529;
+    line-height: 1.2;
+  }
+  
+  [data-bs-theme="dark"] .comment-author-name {
+    color: #e9ecef;
+  }
+  
+  .comment-author-link:hover .comment-author-name {
+    color: #ce9b01ff;
+  }
+  
+  .comment-author-username {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+  }
+  
+  [data-bs-theme="dark"] .comment-author-username {
+    color: #adb5bd;
+  }
+  
   .comment-date { 
     font-size: 0.875rem; 
     color: #6c757d;
@@ -416,6 +465,10 @@
     .add-comment-inner { padding: 1.5rem; }
     .like-btn, .comment-link { flex: 1; justify-content: center; }
     .comment-actions { flex-direction: column; }
+    .comment-author-link { gap: 0.5rem; }
+    .comment-avatar { width: 36px; height: 36px; }
+    .comment-author-name { font-size: 1rem; }
+    .comment-author-username { font-size: 0.8rem; }
   }
 
   @media (max-width: 480px) {
@@ -424,6 +477,8 @@
     .section-title { font-size: 1.25rem; }
     .detail-header h2 { font-size: 1.3rem; }
     .btn-submit { font-size: 0.95rem; }
+    .comment-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    .comment-date { align-self: flex-start; }
   }
 </style>
 
@@ -477,14 +532,23 @@
             <div class="comment">
               <div class="comment-inner">
                 <div class="comment-header">
-                  <span class="comment-author">
-                    <img src="https://ui-avatars.com/api/?name={{ comment.author.username }}&background=ce9b01ff&color=fff&size=32" 
-                    alt="{{ comment.author.username }}" 
-                    style="border-radius:50%; width:32px; height:32px; object-fit:cover; margin-right:0.5rem;">
-                  {{ comment.author.username }}
-                </span>
-                <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
-              </div>
+                  <a href="{% url 'tasks_app:profile' comment.author.username %}" class="comment-author-link">
+                    <img src="{% if comment.author.profile.avatar %}{{ comment.author.profile.avatar.url }}{% else %}https://ui-avatars.com/api/?name={% if comment.author.first_name %}{{ comment.author.first_name }}{% else %}{{ comment.author.username }}{% endif %}&background=ce9b01ff&color=fff&size=40{% endif %}" 
+                         alt="{{ comment.author.username }}" 
+                         class="comment-avatar">
+                    <div class="comment-author-info">
+                      <span class="comment-author-name">
+                        {% if comment.author.first_name %}
+                          {{ comment.author.first_name }} {{ comment.author.last_name }}
+                        {% else %}
+                          {{ comment.author.username }}
+                        {% endif %}
+                      </span>
+                      <span class="comment-author-username">@{{ comment.author.username }}</span>
+                    </div>
+                  </a>
+                  <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+                </div>
                 <p class="comment-content">{{ comment.content }}</p>
                 <div class="comment-actions">
                   <form method="post" action="{% url 'tasks_app:comment_like' comment.pk %}" style="display:inline;">

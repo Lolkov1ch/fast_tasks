@@ -14,7 +14,7 @@
 - 🔍 **Search and filter** your notes easily.  
 - 🌙 **Dark / Light mode** support for comfortable use.  
 - 🧠 **User authentication** — register and manage your personal notes securely.  
-- ⚙️ Built with clean and modular Django architecture (apps, models, views, templates).
+- And more!
 
 ---
 
@@ -64,6 +64,7 @@ pip install -r requirements.txt
 ```
 ### 4️⃣ Run migrations
 ```bash
+python manage.py makemigrations 
 python manage.py migrate
 ```
 ### 5️⃣ Start the development server
