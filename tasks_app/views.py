@@ -2,8 +2,9 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import (
@@ -18,6 +19,7 @@ from tasks_app.mixins import UserIsOwnerMixin
 from .forms import CommentForm, TaskFilterForm, TaskForm
 from .models import Comment, CommentLike, Task, TaskImage
 from django.db.models import Q
+from .forms import UserUpdateForm, ProfileUpdateForm
 
 class TaskListView(ListView):
     model = Task
@@ -150,6 +152,17 @@ class RegisterView(CreateView):
         messages.success(self.request, "Registration successful! Welcome, {}.".format(self.object.username))
         return response
 
+class DeleteAccountConfirmView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'other/account_confirm_delete.html')
+
+    def post(self, request):
+        user = request.user
+        username = user.username
+        user.delete()
+        messages.success(request, f"Account '{username}' has been deleted.")
+        return redirect('/')
+
 class CommentEditView(LoginRequiredMixin, UpdateView):
     model = Comment
     form_class = CommentForm
@@ -189,3 +202,36 @@ class ToggleLikeView(LoginRequiredMixin, View):
         else:
             messages.success(request, "Comment liked!")
         return redirect("tasks_app:task_detail", pk=comment.task.pk)
+    
+class UserSettingsView(LoginRequiredMixin, View):
+    def get(self, request):
+        u_form = UserUpdateForm(instance=request.user)
+        p_form = ProfileUpdateForm(instance=request.user.profile)
+        return render(request, 'other/settings.html', {'u_form': u_form, 'p_form': p_form})
+
+    def post(self, request):
+        u_form = UserUpdateForm(request.POST, instance=request.user)
+        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+
+        if u_form.is_valid() and p_form.is_valid():
+            u_form.save()
+            p_form.save()
+            messages.success(request, "Your account has been updated successfully!")
+            return redirect('tasks_app:settings')
+
+        return render(request, 'other/settings.html', {'u_form': u_form, 'p_form': p_form})
+
+
+class UserProfileView(LoginRequiredMixin, View):
+    def get(self, request, username):
+        user_obj = get_object_or_404(User, username=username)
+        return render(request, 'other/profile.html', {'user_obj': user_obj})
+    
+    def post(self, request, username):
+        if request.user.username != username:
+            messages.error(request, "You cannot edit someone else's profile.")
+            return redirect('tasks_app:profile', username=username)
+        
+        messages.success(request, "Profile updated successfully!")
+        return redirect('tasks_app:profile', username=username)
+

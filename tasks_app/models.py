@@ -2,6 +2,9 @@ from django.db import models
 from django.db.models import Q, F
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+import os
 
 from .utils import task_image_path
 
@@ -28,12 +31,41 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title   
+
 class TaskImage(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to=task_image_path)
 
     def __str__(self):
         return f"Image for {self.task.title}"
+    
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s profile"
+
+    @staticmethod
+    def avatar_upload_path(instance, filename):
+        ext = os.path.splitext(filename)[1]
+        filename = f"avatar{ext}"
+        return f'avatars/{instance.user.username}/{filename}'
+
+    avatar = models.ImageField(upload_to=avatar_upload_path, blank=True, null=True)
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
+
+
 
 class Comment(models.Model):
     task = models.ForeignKey(

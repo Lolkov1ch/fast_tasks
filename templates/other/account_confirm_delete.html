@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Confirm Delete Account{% endblock %}
+
+{% block content %}
+<div style="max-width:500px; margin:60px auto; text-align:center; padding:40px; background:#fff; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.1);">
+    <h1 style="color:red;">Delete Account</h1>
+    <p>Are you sure you want to delete your account? This action <strong>cannot</strong> be undone.</p>
+
+    <form method="post" style="display:inline-block; margin-right:10px;">
+        {% csrf_token %}
+        <button type="submit" style="background:red; color:#fff; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">Confirm Delete</button>
+    </form>
+
+    <a href="{% url 'tasks_app:settings' %}" style="padding:10px 20px; border-radius:8px; border:1px solid #ccc; text-decoration:none; color:#333;">Cancel</a>
+</div>
+{% endblock %}

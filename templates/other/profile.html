@@ -1,0 +1,428 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<style>
+  .profile-wrapper {
+    max-width: 800px;
+    margin: 60px auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+    animation: fadeIn 0.6s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .profile-card {
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+    background: white;
+  }
+  
+  [data-bs-theme="dark"] .profile-card {
+    background: #2d2d2d;
+  }
+  
+  .profile-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #FF5722 0%, #ce9b01ff 100%);
+    z-index: 10;
+  }
+  
+  .profile-header {
+    background: linear-gradient(135deg, #FF5722 0%, #ce9b01ff 100%);
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .profile-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.3; }
+  }
+  
+  .avatar-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+  }
+  
+  .avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 5px solid white;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    object-fit: cover;
+    transition: all 0.3s ease, box-shadow 0.4s ease;
+    position: relative;
+    z-index: 2;
+}
+
+    .avatar:hover {
+    transform: scale(1.03); 
+    box-shadow: 0 0 20px rgba(255, 87, 34, 0.6), 0 8px 24px rgba(0,0,0,0.25); /* мягкое свечение */
+    }
+  
+  [data-bs-theme="dark"] .avatar {
+    border-color: #343a40;
+  }
+  
+  .profile-header h1 {
+    color: white;
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 2;
+  }
+  
+  .profile-header h2 {
+    color: rgba(255,255,255,0.95);
+    font-size: 1.375rem;
+    font-weight: 500;
+    margin: 0 0 0.5rem 0;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .profile-header p {
+    color: rgba(255,255,255,0.9);
+    font-size: 1.125rem;
+    margin: 0;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .profile-body {
+    padding: 2.5rem;
+    background: white;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  
+  [data-bs-theme="dark"] .profile-body {
+    background: #2d2d2d;
+    color: #e9ecef;
+  }
+  
+  .profile-info {
+    background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    border-left: 4px solid #FF5722;
+    transition: all 0.3s ease;
+  }
+  
+  [data-bs-theme="dark"] .profile-info {
+    background: linear-gradient(145deg, #1a1a1a 0%, #343a40 100%);
+    border-left-color: #ce9b01ff;
+  }
+  
+  .profile-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255,87,34,0.15);
+  }
+  
+  .profile-info div {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #495057;
+  }
+  
+  [data-bs-theme="dark"] .profile-info div {
+    color: #ced4da;
+  }
+  
+  .profile-info strong {
+    color: #FF5722;
+    font-weight: 700;
+    display: inline-block;
+    margin-right: 0.5rem;
+    font-size: 1.125rem;
+  }
+  
+  [data-bs-theme="dark"] .profile-info strong {
+    color: #ce9b01ff;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .info-card {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #FF5722;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  [data-bs-theme="dark"] .info-card {
+    background: #1a1a1a;
+    border-left-color: #ce9b01ff;
+  }
+  
+  .info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, rgba(255,87,34,0.1) 0%, rgba(206,155,1,0.1) 100%);
+    border-radius: 0 0 0 100%;
+    transition: all 0.3s ease;
+  }
+  
+  .info-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(255,87,34,0.2);
+  }
+  
+  .info-card:hover::before {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .info-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  [data-bs-theme="dark"] .info-label {
+    color: #adb5bd;
+  }
+  
+  .info-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212529;
+  }
+  
+  [data-bs-theme="dark"] .info-value {
+    color: #e9ecef;
+  }
+  
+  .btn-edit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #FF5722 0%, #FFC107 100%);
+    border: none;
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(255,87,34,0.3);
+  }
+  
+  .btn-edit:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(255,87,34,0.6);
+    color: white;
+    text-decoration: none;
+  }
+  
+  .btn-container {
+    text-align: center;
+    margin-top: 2rem;
+  }
+  
+  .section-divider {
+    height: 3px;
+    background: linear-gradient(90deg, #FF5722 0%, #FFC107 100%);
+    border-radius: 2px;
+    margin: 2rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .section-divider::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: shimmer 2s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+    font-style: italic;
+    background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+  }
+  
+  [data-bs-theme="dark"] .empty-state {
+    background: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-color: #495057;
+    color: #adb5bd;
+  }
+  
+  @media (max-width: 768px) {
+    .profile-wrapper {
+      margin: 30px auto;
+    }
+    
+    .profile-header {
+      padding: 2rem 1.5rem 1.5rem;
+    }
+    
+    .profile-header h1 {
+      font-size: 1.75rem;
+    }
+    
+    .profile-header h2 {
+      font-size: 1.125rem;
+    }
+    
+    .avatar {
+      width: 120px;
+      height: 120px;
+    }
+    
+    .profile-body {
+      padding: 1.5rem;
+    }
+    
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .btn-edit {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .avatar {
+      width: 100px;
+      height: 100px;
+    }
+    
+    .profile-header h1 {
+      font-size: 1.5rem;
+    }
+  }
+</style>
+
+<div class="profile-wrapper">
+  <div class="profile-card">
+    <div class="profile-header">
+      <div class="avatar-container">
+        <img src="{% if user_obj.profile.avatar %}{{ user_obj.profile.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ user_obj.username }}&background=ce9b01ff&color=fff&size=150{% endif %}" 
+             alt="Avatar" class="avatar">
+      </div>
+      <h1>{{ user_obj.first_name }} {{ user_obj.last_name }}</h1>
+      <h2>{{ user_obj.username }}</h2>
+      <p>{{ user_obj.email|default:"No email set" }}</p>
+    </div>
+    
+    <div class="profile-body">
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-label">Username</div>
+          <div class="info-value">{{ user_obj.username }}</div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Full Name</div>
+          <div class="info-value">
+            {% if user_obj.first_name or user_obj.last_name %}
+              {{ user_obj.first_name }} {{ user_obj.last_name }}
+            {% else %}
+              <span class="empty-state" style="display:inline; padding:0.25rem 0.5rem; font-size:0.9rem;">Not set</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Email</div>
+          <div class="info-value">
+            {% if user_obj.email %}
+              {{ user_obj.email }}
+            {% else %}
+              <span class="empty-state" style="display:inline; padding:0.25rem 0.5rem; font-size:0.9rem;">Not set</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-label">Member Since</div>
+          <div class="info-value">{{ user_obj.date_joined|date:"F j, Y" }}</div>
+        </div>
+      </div>
+      
+      <div class="section-divider"></div>
+      
+      <div class="profile-info">
+        <div>
+          <strong>Bio:</strong> 
+          {% if user_obj.profile.bio %}
+            {{ user_obj.profile.bio }}
+          {% else %}
+            <span class="empty-state" style="display:inline; padding:0.25rem 0.5rem; margin-left:0.5rem;">No bio set</span>
+          {% endif %}
+        </div>
+      </div>
+      
+      {% if request.user.username == user_obj.username %}
+        <div class="btn-container">
+          <a href="{% url 'tasks_app:settings' %}" class="btn-edit">
+            Edit Profile
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

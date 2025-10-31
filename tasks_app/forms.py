@@ -1,8 +1,8 @@
 from .models import Comment
 from django import forms
-
+from .models import Profile
 from .models import Task, TaskImage
-
+from django.contrib.auth.models import User
 
 class TaskForm(forms.ModelForm):
     class Meta:
@@ -13,6 +13,16 @@ class TaskForm(forms.ModelForm):
                 attrs={"type": "date", "class": "form-control"}
             ),
         }
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['avatar', 'bio']
 
 class TaskFilterForm(forms.Form):
     status = forms.ChoiceField(
